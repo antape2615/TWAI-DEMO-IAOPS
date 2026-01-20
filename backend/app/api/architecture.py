@@ -34,15 +34,26 @@ async def generate_architecture(request: ArchitectureRequest):
         logger.info(f"Generando arquitectura para cliente {client.name}")
         
         # Generar arquitectura con IA
-        architecture_response = await ai_orchestrator.generate_architecture(
+        architecture_data = await ai_orchestrator.generate_architecture(
             client=client,
             request=request
         )
         
-        return ArchitectureResponse(**architecture_response)
+        # Construir respuesta estructurada
+        response = ArchitectureResponse(
+            client_id=request.client_id,
+            architecture=architecture_data.get('architecture', {}),
+            infrastructure_code=architecture_data.get('infrastructure_code'),
+            diagram=architecture_data.get('diagram'),
+            estimated_cost=architecture_data.get('estimated_cost'),
+            recommendations=architecture_data.get('recommendations', [])
+        )
+        
+        return response
         
     except Exception as e:
         logger.error(f"Error generando arquitectura: {e}")
+        logger.exception("Stack trace:")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generando arquitectura: {str(e)}"

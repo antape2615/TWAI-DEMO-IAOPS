@@ -44,37 +44,66 @@ iaops-platform/
 
 ### Prerrequisitos
 
-- Python 3.11+
 - Docker y Docker Compose
 - Node.js 18+ (para frontend)
+- Python 3.11+ (si no usas Docker)
 
-### Instalación
+### Instalación Automática (Recomendado)
 
 ```bash
 # Clonar repositorio
 git clone https://github.com/antape2615/TWAI-DEMO-IAOPS.git
 cd TWAI-DEMO-IAOPS
 
-# Instalar dependencias del backend
-cd backend
-pip install -r requirements.txt
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales
-
-# Ejecutar backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Ver documentación
-cd ../docs
-mkdocs serve
+# Ejecutar script de setup
+./setup.sh
 ```
 
-### Con Docker
+Este script automáticamente:
+- ✅ Crea los archivos `.env` necesarios
+- ✅ Levanta PostgreSQL, Redis y Backend
+- ✅ Muestra las URLs de los servicios
 
+### Instalación Manual
+
+**Paso 1: Crear archivos de configuración**
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+**Paso 2: Levantar con Docker**
 ```bash
 docker-compose up -d
+```
+
+**Paso 3: Instalar y ejecutar frontend**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Sin Docker (Manual)
+
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend (en otra terminal)
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+
+# Documentación (opcional)
+mkdocs serve
 ```
 
 ## 📚 Documentación
@@ -146,9 +175,13 @@ Desarrollado con ❤️ por el equipo de IAOPS
 - [x] Conectores GitHub, GitLab
 - [x] Orquestador de IA
 - [x] Documentación con MkDocs
-- [ ] Frontend con React
-- [ ] Base de datos PostgreSQL
+- [x] Frontend con React + TypeScript
+- [x] Docker y Docker Compose
+- [x] Script de setup automático
+- [ ] Base de datos PostgreSQL (migrations)
 - [ ] Sistema de caché con Redis
+- [ ] Autenticación JWT completa
 - [ ] Métricas y monitoring
 - [ ] Tests de integración completos
 - [ ] CI/CD con GitHub Actions
+- [ ] Deploy en producción

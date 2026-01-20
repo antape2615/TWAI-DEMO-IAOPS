@@ -87,8 +87,8 @@ class ClientInDB(ClientBase):
     model_config = ConfigDict(from_attributes=True)
     
     id: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     is_active: bool = True
 
 

@@ -128,27 +128,35 @@ export function AIGenerator() {
                   Descripción General
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {architecture.architecture.architecture_overview}
+                  {typeof architecture.architecture === 'object' 
+                    ? architecture.architecture.architecture_overview || 'Arquitectura generada'
+                    : 'Arquitectura generada'}
                 </p>
               </div>
 
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  Componentes ({architecture.architecture.components.length})
-                </h3>
-                <div className="space-y-2">
-                  {architecture.architecture.components.map((component, index) => (
-                    <div
-                      key={index}
-                      className="p-3 bg-gray-50 rounded-lg border border-gray-200"
-                    >
-                      <p className="font-medium text-gray-900">{component.name}</p>
-                      <p className="text-sm text-gray-600">{component.cloud_service}</p>
-                      <p className="text-xs text-gray-500 mt-1">{component.description}</p>
-                    </div>
-                  ))}
+              {architecture.architecture?.components && architecture.architecture.components.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Componentes ({architecture.architecture.components.length})
+                  </h3>
+                  <div className="space-y-2">
+                    {architecture.architecture.components.map((component: any, index: number) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <p className="font-medium text-gray-900">{component.name || 'Componente'}</p>
+                        {component.cloud_service && (
+                          <p className="text-sm text-gray-600">{component.cloud_service}</p>
+                        )}
+                        {component.description && (
+                          <p className="text-xs text-gray-500 mt-1">{component.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {architecture.estimated_cost && (
                 <div>
@@ -156,24 +164,31 @@ export function AIGenerator() {
                     Estimación de Costos
                   </h3>
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-lg font-bold text-green-700">
-                      ${architecture.estimated_cost.monthly_estimate.min} - $
-                      {architecture.estimated_cost.monthly_estimate.max} /mes
-                    </p>
-                    <p className="text-sm text-green-600">
-                      {architecture.estimated_cost.monthly_estimate.currency}
-                    </p>
+                    {architecture.estimated_cost.monthly_estimate ? (
+                      <>
+                        <p className="text-lg font-bold text-green-700">
+                          {typeof architecture.estimated_cost.monthly_estimate === 'object' 
+                            ? `$${architecture.estimated_cost.monthly_estimate.min || 0} - $${architecture.estimated_cost.monthly_estimate.max || 0} /mes`
+                            : `$${architecture.estimated_cost.monthly_estimate} /mes`}
+                        </p>
+                        <p className="text-sm text-green-600">
+                          {architecture.estimated_cost.currency || 'USD'}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-600">Estimación no disponible</p>
+                    )}
                   </div>
                 </div>
               )}
 
-              {architecture.recommendations.length > 0 && (
+              {architecture.recommendations && architecture.recommendations.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">
                     Recomendaciones
                   </h3>
                   <ul className="space-y-1">
-                    {architecture.recommendations.map((rec, index) => (
+                    {architecture.recommendations.map((rec: string, index: number) => (
                       <li key={index} className="text-sm text-gray-600 flex items-start">
                         <span className="text-primary-600 mr-2">•</span>
                         {rec}
@@ -193,6 +208,18 @@ export function AIGenerator() {
                   </pre>
                 </div>
               )}
+              
+              {/* Debug: Ver datos raw */}
+              <div className="mt-4">
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-gray-500 hover:text-gray-700">
+                    Ver datos completos (debug)
+                  </summary>
+                  <pre className="mt-2 p-4 bg-gray-50 rounded-lg overflow-x-auto">
+                    {JSON.stringify(architecture, null, 2)}
+                  </pre>
+                </details>
+              </div>
             </div>
           )}
         </div>

@@ -22,17 +22,30 @@ class AIOrchestrator:
     
     def __init__(self):
         self.openai_client = None
+        self.azure_openai_client = None
         self.anthropic_client = None
         self._initialize_clients()
     
     def _initialize_clients(self):
         """Inicializa los clientes de IA"""
         try:
+            # OpenAI standard
             if settings.OPENAI_API_KEY:
                 import openai
                 self.openai_client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
                 logger.info("OpenAI client initialized")
             
+            # Azure OpenAI
+            if settings.AZURE_OPENAI_API_KEY and settings.AZURE_OPENAI_ENDPOINT:
+                from openai import AzureOpenAI
+                self.azure_openai_client = AzureOpenAI(
+                    api_key=settings.AZURE_OPENAI_API_KEY,
+                    api_version=settings.AZURE_OPENAI_API_VERSION,
+                    azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
+                )
+                logger.info(f"Azure OpenAI client initialized: {settings.AZURE_OPENAI_DEPLOYMENT_NAME}")
+            
+            # Anthropic
             if settings.ANTHROPIC_API_KEY:
                 import anthropic
                 self.anthropic_client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
@@ -190,9 +203,33 @@ Genera SOLO el JSON, sin explicaciones adicionales.
     async def _call_ai(self, prompt: str) -> str:
         """
         Llama al servicio de IA para generar la arquitectura
+        Prioridad: Azure OpenAI > OpenAI > Anthropic
         """
         try:
-            if self.openai_client:
+            # Prioridad 1: Azure OpenAI (si está configurado)
+            if self.azure_openai_client and settings.AZURE_OPENAI_DEPLOYMENT_NAME:
+                logger.info(f"Usando Azure OpenAI: {settings.AZURE_OPENAI_DEPLOYMENT_NAME}")
+                response = self.azure_openai_client.chat.completions.create(
+                    model=settings.AZURE_OPENAI_DEPLOYMENT_NAME,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "Eres un arquitecto de soluciones cloud experto. Respondes SOLO con JSON válido."
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt
+                        }
+                    ],
+                    temperature=0.7,
+                    max_tokens=4000
+                )
+                
+                return response.choices[0].message.content
+            
+            # Prioridad 2: OpenAI standard
+            elif self.openai_client:
+                logger.info(f"Usando OpenAI: {settings.OPENAI_MODEL}")
                 response = self.openai_client.chat.completions.create(
                     model=settings.OPENAI_MODEL,
                     messages=[
@@ -211,7 +248,9 @@ Genera SOLO el JSON, sin explicaciones adicionales.
                 
                 return response.choices[0].message.content
             
+            # Prioridad 3: Anthropic
             elif self.anthropic_client:
+                logger.info(f"Usando Anthropic: {settings.ANTHROPIC_MODEL}")
                 response = self.anthropic_client.messages.create(
                     model=settings.ANTHROPIC_MODEL,
                     max_tokens=4000,
@@ -226,7 +265,7 @@ Genera SOLO el JSON, sin explicaciones adicionales.
                 return response.content[0].text
             
             else:
-                raise Exception("No hay cliente de IA configurado")
+                raise Exception("No hay cliente de IA configurado. Configura AZURE_OPENAI_API_KEY o OPENAI_API_KEY en .env")
                 
         except Exception as e:
             logger.error(f"Error llamando a IA: {e}")

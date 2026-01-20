@@ -4,6 +4,7 @@ import { Client } from '@/types';
 import { clientService } from '@/services/clientService';
 import { Loading } from '@/components/Loading';
 import { Alert } from '@/components/Alert';
+import { CreateClientModal } from '@/components/CreateClientModal';
 import toast from 'react-hot-toast';
 
 export function Clients() {
@@ -162,6 +163,14 @@ export function Clients() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modal de Creación */}
+      {showCreateModal && (
+        <CreateClientModal
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={loadClients}
+        />
       )}
     </div>
   );

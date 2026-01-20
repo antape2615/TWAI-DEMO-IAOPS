@@ -17,6 +17,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - iaops-network
 
   redis:
     image: redis:7-alpine
@@ -30,6 +32,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - iaops-network
 
   backend:
     build:
@@ -42,8 +46,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://iaops:iaops@postgres:5432/iaops
       - REDIS_URL=redis://redis:6379/0
       - DEBUG=True
-    env_file:
-      - ./backend/.env
+      - APP_NAME=IAOPS Platform
+      - SECRET_KEY=iaops-secret-key-change-in-production-12345678
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,6 +56,8 @@ services:
     volumes:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - iaops-network
 
   docs:
     image: squidfunk/mkdocs-material:latest
@@ -61,7 +67,13 @@ services:
     volumes:
       - ./:/docs
     command: serve --dev-addr=0.0.0.0:8000
+    networks:
+      - iaops-network
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  iaops-network:
+    driver: bridge

@@ -62,6 +62,13 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
     
+    # Azure OpenAI Configuration
+    AZURE_OPENAI_API_KEY: Optional[str] = None
+    AZURE_OPENAI_ENDPOINT: Optional[str] = None
+    AZURE_OPENAI_API_VERSION: str = "2024-02-15-preview"
+    AZURE_OPENAI_DEPLOYMENT_NAME: Optional[str] = None
+    AZURE_OPENAI_MODEL: str = "gpt-4"
+    
     # Anthropic Configuration
     ANTHROPIC_API_KEY: Optional[str] = None
     ANTHROPIC_MODEL: str = "claude-3-opus-20240229"
