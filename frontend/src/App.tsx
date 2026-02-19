@@ -4,7 +4,10 @@ import { Layout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
 import { AIGenerator } from './pages/AIGenerator';
-import { Resources } from './pages/Resources';
+import { Monitoring } from './pages/Monitoring';
+import { Architectures } from './pages/Architectures';
+import { Deployments } from './pages/Deployments';
+import { Settings } from './pages/Settings';
 
 function App() {
   return (
@@ -15,10 +18,10 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/ai-generator" element={<AIGenerator />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/architectures" element={<div>Arquitecturas</div>} />
-          <Route path="/deployments" element={<div>Despliegues</div>} />
-          <Route path="/settings" element={<div>Configuración</div>} />
+          <Route path="/monitoring" element={<Monitoring />} />
+          <Route path="/architectures" element={<Architectures />} />
+          <Route path="/deployments" element={<Deployments />} />
+          <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -1,57 +1,66 @@
 import { useEffect, useState } from 'react';
-import { BarChart3, Cloud, Users, Sparkles, TrendingUp, Activity } from 'lucide-react';
-import { clientService } from '@/services/clientService';
-import { Client } from '@/types';
+import { BarChart3, Cloud, Users, Sparkles, Activity } from 'lucide-react';
+import { dashboardService, DashboardStats } from '@/services/dashboardService';
+import { formatDistanceToNow } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function Dashboard() {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadClients();
+    loadDashboardData();
   }, []);
 
-  const loadClients = async () => {
+  const loadDashboardData = async () => {
     try {
-      const data = await clientService.getAll();
-      setClients(data);
+      const data = await dashboardService.getStats();
+      setStats(data);
     } catch (error) {
-      console.error('Error loading clients:', error);
+      console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const stats = [
+  const statCards = [
     {
       name: 'Total Clientes',
-      value: clients.length,
+      value: stats?.total_clients || 0,
       icon: Users,
       color: 'text-blue-600',
       bg: 'bg-blue-100',
     },
     {
       name: 'Arquitecturas Generadas',
-      value: '24',
+      value: stats?.total_architectures || 0,
       icon: Sparkles,
       color: 'text-purple-600',
       bg: 'bg-purple-100',
     },
     {
-      name: 'Despliegues Activos',
-      value: '12',
+      name: 'Despliegues Exitosos',
+      value: stats?.total_deployments || 0,
       icon: Cloud,
       color: 'text-green-600',
       bg: 'bg-green-100',
     },
     {
-      name: 'Recursos Cloud',
-      value: '156',
+      name: 'Nubes en Uso',
+      value: Object.keys(stats?.cloud_usage || {}).length,
       icon: BarChart3,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -64,7 +73,7 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
+        {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.name} className="card">
@@ -94,67 +103,64 @@ export function Dashboard() {
             <Activity className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {[
-              {
-                action: 'Arquitectura generada',
-                client: 'Empresa ABC',
-                time: 'Hace 2 horas',
-              },
-              {
-                action: 'Despliegue completado',
-                client: 'Tech Corp',
-                time: 'Hace 4 horas',
-              },
-              {
-                action: 'Cliente creado',
-                client: 'Startup XYZ',
-                time: 'Hace 1 día',
-              },
-            ].map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
-              >
-                <div>
-                  <p className="font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-sm text-gray-500">{activity.client}</p>
+            {stats?.recent_activity.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">No hay actividad reciente</p>
+            ) : (
+              stats?.recent_activity.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{activity.action}</p>
+                    <p className="text-sm text-gray-500">{activity.client}</p>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {formatDistanceToNow(new Date(activity.time), { addSuffix: true, locale: es })}
+                  </span>
                 </div>
-                <span className="text-xs text-gray-400">{activity.time}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
-              Clouds en Uso
+              Uso de Clouds
             </h2>
             <Cloud className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
-            {[
-              { name: 'AWS', clients: 8, color: 'bg-orange-500' },
-              { name: 'Azure', clients: 5, color: 'bg-blue-500' },
-              { name: 'GCP', clients: 3, color: 'bg-green-500' },
-            ].map((cloud) => (
-              <div key={cloud.name}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    {cloud.name}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {cloud.clients} clientes
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full ${cloud.color}`}
-                    style={{ width: `${(cloud.clients / 16) * 100}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+            {Object.entries(stats?.cloud_usage || {}).length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-4">Sin datos de nube</p>
+            ) : (
+              Object.entries(stats?.cloud_usage || {}).map(([name, count]) => {
+                const colors: Record<string, string> = {
+                  'aws': 'bg-orange-500',
+                  'azure': 'bg-blue-500',
+                  'gcp': 'bg-green-500'
+                };
+                return (
+                  <div key={name}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 capitalize">
+                        {name}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {count} despliegues
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full ${colors[name.toLowerCase()] || 'bg-gray-500'}`}
+                        style={{ width: `${Math.min(100, (count / (stats?.total_deployments || 1)) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -165,18 +171,18 @@ export function Dashboard() {
           Acciones Rápidas
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="btn btn-primary flex items-center justify-center space-x-2">
+          <a href="/clients" className="btn btn-primary flex items-center justify-center space-x-2">
             <Users className="w-5 h-5" />
-            <span>Nuevo Cliente</span>
-          </button>
-          <button className="btn btn-primary flex items-center justify-center space-x-2">
+            <span>Gestionar Clientes</span>
+          </a>
+          <a href="/generator" className="btn btn-primary flex items-center justify-center space-x-2">
             <Sparkles className="w-5 h-5" />
             <span>Generar Arquitectura</span>
-          </button>
-          <button className="btn btn-primary flex items-center justify-center space-x-2">
+          </a>
+          <a href="/resources" className="btn btn-primary flex items-center justify-center space-x-2">
             <Cloud className="w-5 h-5" />
             <span>Ver Recursos</span>
-          </button>
+          </a>
         </div>
       </div>
     </div>

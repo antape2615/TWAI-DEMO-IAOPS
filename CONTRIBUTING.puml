@@ -1,0 +1,9 @@
+@startuml
+class MyCloudConnector {
+  create_resource(self, str, Dict[str, Any]): def
+  MyCloudConnector(BaseCloudConnector): class
+  connect(self): def
+  validate_credentials(self): def
+  test_my_feature(sample_client): def
+}
+@enduml

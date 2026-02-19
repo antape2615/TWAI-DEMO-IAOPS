@@ -52,13 +52,20 @@ class IAOPSOrchestrator:
             if provider == CloudProvider.AWS:
                 connector = AWSConnector(credentials, region)
             elif provider == CloudProvider.AZURE:
-                connector = AzureConnector(credentials, region)
+                connector = AzureConnector(
+                    subscription_id=credentials.get('subscription_id', ''),
+                    tenant_id=credentials.get('tenant_id', ''),
+                    client_id=credentials.get('client_id', ''),
+                    client_secret=credentials.get('client_secret', '')
+                )
             elif provider == CloudProvider.GCP:
                 connector = GCPConnector(credentials, region)
             else:
                 raise ValueError(f"Proveedor no soportado: {provider}")
             
-            await connector.connect()
+            connected = await connector.connect()
+            if not connected:
+                raise ValueError(f"No se pudo establecer conexión con {provider} ({region}). Verifique sus credenciales.")
             self.cloud_connectors[key] = connector
         
         return self.cloud_connectors[key]
@@ -100,6 +107,7 @@ class IAOPSOrchestrator:
         client: Client,
         target: DeploymentTarget,
         infrastructure_code: str,
+        architecture_metadata: Optional[Dict[str, Any]] = None,
         repository_config: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
@@ -142,12 +150,21 @@ class IAOPSOrchestrator:
             target.region
         )
         
+        # Determinar Resource Group (usar metadata de la arquitectura si existe)
+        resource_group = 'iaops-rg'
+        if architecture_metadata and architecture_metadata.get('resource_group_name'):
+            resource_group = architecture_metadata.get('resource_group_name')
+            logger.info(f"Usando Resource Group personalizado: {resource_group}")
+
         # Desplegar infraestructura
         deployment_result = await connector.deploy_infrastructure(
             infrastructure_code,
             parameters={
+                'deployment_name': f"iaops-deploy-{target.environment}",
                 'environment': target.environment,
-                'tags': target.resource_tags
+                'tags': target.resource_tags,
+                'resource_group': resource_group,
+                'location': target.region or 'eastus'
             }
         )
         
@@ -176,11 +193,28 @@ class IAOPSOrchestrator:
         """
         Obtiene las credenciales de cloud del cliente desde la BD
         
-        TODO: Implementar consulta a base de datos
+        TODO: Implementar consulta a base de datos real
         """
-        logger.warning(f"Obteniendo credenciales para {client_id}/{provider} - Placeholder")
+        from app.core.config import settings
         
-        # Placeholder - en producción esto viene de la BD
+        logger.warning(f"Obteniendo credenciales para {client_id}/{provider} - Usando Env Vars")
+        
+        if provider == CloudProvider.AZURE:
+            return {
+                'client_id': (settings.AZURE_CLIENT_ID or "").strip(),
+                'client_secret': (settings.AZURE_CLIENT_SECRET or "").strip(),
+                'tenant_id': (settings.AZURE_TENANT_ID or "").strip(),
+                'subscription_id': (settings.AZURE_SUBSCRIPTION_ID or "").strip()
+            }
+        elif provider == CloudProvider.AWS:
+            return {
+                'access_key_id': (settings.AWS_ACCESS_KEY_ID or "").strip(),
+                'secret_access_key': (settings.AWS_SECRET_ACCESS_KEY or "").strip(),
+                'session_token': (settings.AWS_SESSION_TOKEN or "").strip() or None,
+                'region': (settings.AWS_DEFAULT_REGION or "").strip()
+            }
+        
+        # Default placeholder
         return {
             'access_key_id': 'placeholder',
             'secret_access_key': 'placeholder'
@@ -262,9 +296,10 @@ class IAOPSOrchestrator:
         if cloud_provider not in client.tech_profile.clouds:
             raise ValueError(f"Cliente no tiene acceso a {cloud_provider}")
         
-        # Obtener credenciales y conector
+        # Obtener credenciales y conector (pasar región si viene en las credenciales)
         credentials = await self._get_client_cloud_credentials(client.id, cloud_provider)
-        connector = await self.get_cloud_connector(cloud_provider, credentials)
+        region = credentials.get('region') or None
+        connector = await self.get_cloud_connector(cloud_provider, credentials, region)
         
         # Listar recursos
         resources = await connector.list_resources(resource_type)

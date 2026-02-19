@@ -1,0 +1,20 @@
+@startuml
+class IAOPSOrchestrator {
+  __init__(self): def
+  get_cloud_connector(self, CloudProvider, Dict[str, Any], None): def
+  ValueError({provider}"): raise
+  ValueError(({region}): raise
+  get_repository_connector(self, RepositoryProvider, Dict[str, Any], None): def
+  ValueError({provider}"): raise
+  orchestrate_deployment(self, Client, DeploymentTarget, str, Optional[Dict[str, None, Optional[Dict[str, None): def
+  ValueError({client.tech_profile.clouds}"): raise
+  _get_client_cloud_credentials(self, str, CloudProvider): def
+  _sync_with_repository(self, Client, Dict[str, Any], str): def
+  ValueError({provider}"): raise
+  _get_client_repo_credentials(self, str, RepositoryProvider): def
+  list_client_resources(self, Client, CloudProvider, str): def
+  ValueError({cloud_provider}"): raise
+  validate_tech_profile(self, Client): def
+  cleanup(self): def
+}
+@enduml

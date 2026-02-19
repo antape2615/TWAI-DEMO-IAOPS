@@ -1,126 +1,170 @@
-"""
-API endpoints para gestión de clientes
-"""
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import List
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, delete
 from app.models.schemas import Client, ClientCreate, ClientUpdate
-from app.orchestrators.iaops_orchestrator import orchestrator
+from app.models.database import ClientModel
+from app.core.database import get_db
 from app.core.logging import logger
 import uuid
 
 router = APIRouter()
 
-# Storage temporal (en producción usar base de datos)
-clients_db: dict = {}
-
-
 @router.post("/", response_model=Client, status_code=status.HTTP_201_CREATED)
-async def create_client(client_data: ClientCreate):
+async def create_client(client_data: ClientCreate, db: AsyncSession = Depends(get_db)):
     """
-    Crea un nuevo cliente con su perfil tecnológico
+    Crea un nuevo cliente con su perfil tecnológico en PostgreSQL
     """
     try:
-        from datetime import datetime
-        
-        client_id = str(uuid.uuid4())
-        
-        client = Client(
-            id=client_id,
-            **client_data.model_dump(),
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+        new_client = ClientModel(
+            id=str(uuid.uuid4()),
+            name=client_data.name,
+            description=client_data.description,
+            tech_profile=client_data.tech_profile.model_dump(),
+            is_active=True
         )
         
-        # Guardar en storage
-        clients_db[client_id] = client
+        db.add(new_client)
+        await db.commit()
+        await db.refresh(new_client)
         
-        logger.info(f"Cliente creado: {client_id} - {client.name}")
+        logger.info(f"Cliente creado en DB: {new_client.id} - {new_client.name}")
         
-        return client
+        return Client(
+            id=new_client.id,
+            name=new_client.name,
+            description=new_client.description,
+            tech_profile=new_client.tech_profile,
+            is_active=new_client.is_active,
+            created_at=new_client.created_at,
+            updated_at=new_client.updated_at
+        )
         
     except Exception as e:
         logger.error(f"Error creando cliente: {e}")
-        logger.exception("Stack trace:")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 
-
 @router.get("/", response_model=List[Client])
-async def list_clients():
+async def list_clients(db: AsyncSession = Depends(get_db)):
     """
-    Lista todos los clientes
+    Lista todos los clientes desde PostgreSQL
     """
-    return list(clients_db.values())
-
+    result = await db.execute(select(ClientModel).order_by(ClientModel.created_at.desc()))
+    clients = result.scalars().all()
+    return [
+        Client(
+            id=c.id,
+            name=c.name,
+            description=c.description,
+            tech_profile=c.tech_profile,
+            is_active=c.is_active,
+            created_at=c.created_at,
+            updated_at=c.updated_at
+        ) for c in clients
+    ]
 
 @router.get("/{client_id}", response_model=Client)
-async def get_client(client_id: str):
+async def get_client(client_id: str, db: AsyncSession = Depends(get_db)):
     """
-    Obtiene un cliente por ID
+    Obtiene un cliente por ID desde PostgreSQL
     """
-    if client_id not in clients_db:
+    result = await db.execute(select(ClientModel).where(ClientModel.id == client_id))
+    client = result.scalar_one_or_none()
+    
+    if not client:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Cliente {client_id} no encontrado"
         )
     
-    return clients_db[client_id]
-
+    return Client(
+        id=client.id,
+        name=client.name,
+        description=client.description,
+        tech_profile=client.tech_profile,
+        is_active=client.is_active,
+        created_at=client.created_at,
+        updated_at=client.updated_at
+    )
 
 @router.put("/{client_id}", response_model=Client)
-async def update_client(client_id: str, client_update: ClientUpdate):
+async def update_client(client_id: str, client_update: ClientUpdate, db: AsyncSession = Depends(get_db)):
     """
-    Actualiza un cliente
+    Actualiza un cliente en PostgreSQL
     """
-    if client_id not in clients_db:
+    result = await db.execute(select(ClientModel).where(ClientModel.id == client_id))
+    client = result.scalar_one_or_none()
+    
+    if not client:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Cliente {client_id} no encontrado"
         )
     
-    client = clients_db[client_id]
-    
-    # Actualizar campos
     update_data = client_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(client, field, value)
+        if field == 'tech_profile':
+            setattr(client, field, value.model_dump() if hasattr(value, 'model_dump') else value)
+        else:
+            setattr(client, field, value)
     
-    logger.info(f"Cliente actualizado: {client_id}")
+    logger.info(f"Cliente actualizado en DB: {client_id}")
     
-    return client
-
+    return Client(
+        id=client.id,
+        name=client.name,
+        description=client.description,
+        tech_profile=client.tech_profile,
+        is_active=client.is_active,
+        created_at=client.created_at,
+        updated_at=client.updated_at
+    )
 
 @router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_client(client_id: str):
+async def delete_client(client_id: str, db: AsyncSession = Depends(get_db)):
     """
-    Elimina un cliente
+    Elimina un cliente de PostgreSQL
     """
-    if client_id not in clients_db:
+    result = await db.execute(delete(ClientModel).where(ClientModel.id == client_id))
+    if result.rowcount == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Cliente {client_id} no encontrado"
         )
     
-    del clients_db[client_id]
-    logger.info(f"Cliente eliminado: {client_id}")
-
+    await db.commit()
+    logger.info(f"Cliente eliminado de DB: {client_id}")
+    return None
 
 @router.post("/{client_id}/validate")
-async def validate_client_profile(client_id: str):
+async def validate_client_profile(client_id: str, db: AsyncSession = Depends(get_db)):
     """
-    Valida el perfil tecnológico del cliente
+    Valida el perfil tecnológico del cliente desde PostgreSQL
+    """
+    from app.orchestrators.iaops_orchestrator import orchestrator
     
-    Verifica que las credenciales de clouds y repositorios sean válidas
-    """
-    if client_id not in clients_db:
+    result = await db.execute(select(ClientModel).where(ClientModel.id == client_id))
+    client_model = result.scalar_one_or_none()
+    
+    if not client_model:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Cliente {client_id} no encontrado"
         )
     
-    client = clients_db[client_id]
+    # Convertir a esquema Pydantic para el orquestador
+    client = Client(
+        id=client_model.id,
+        name=client_model.name,
+        description=client_model.description,
+        tech_profile=client_model.tech_profile,
+        is_active=client_model.is_active,
+        created_at=client_model.created_at,
+        updated_at=client_model.updated_at
+    )
     
     try:
         validation_report = await orchestrator.validate_tech_profile(client)

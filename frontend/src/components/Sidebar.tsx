@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Users, 
-  Boxes, 
-  Cloud, 
+import {
+  Home,
+  Users,
+  Boxes,
   Sparkles,
   Settings,
-  BarChart3
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -14,7 +14,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Clientes', href: '/clients', icon: Users },
   { name: 'Arquitecturas', href: '/architectures', icon: Boxes },
-  { name: 'Recursos Cloud', href: '/resources', icon: Cloud },
+  { name: 'Monitoreo', href: '/monitoring', icon: Activity },
   { name: 'Generador IA', href: '/ai-generator', icon: Sparkles },
   { name: 'Despliegues', href: '/deployments', icon: BarChart3 },
   { name: 'Configuración', href: '/settings', icon: Settings },

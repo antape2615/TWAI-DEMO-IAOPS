@@ -1,0 +1,20 @@
+# entornos virtuales
+.venv/
+mcp_simple_chatbot/venv-mcp/
+mcp_simple_chatbot/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+
+# archivos locales / secretos
+mcp_simple_chatbot/.env
+.env.mcp
+**/.DS_Store
+
+# scripts standalone (no usados en producción Docker)
+mcp_simple_chatbot/main.py
+mcp_simple_chatbot/main_bedrock.py
+mcp_simple_chatbot/main_ollama.py
+
+# docs
+*.md

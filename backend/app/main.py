@@ -5,7 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import logger
-from app.api import clients, deployments, architecture, resources
+from app.api import clients, deployments, architecture, resources, dashboard, repositories, cicd, settings as api_settings, monitoring
+from app.core.database import engine
+from app.models.database import Base
 
 # Crear aplicación
 app = FastAPI(
@@ -50,11 +52,51 @@ app.include_router(
     tags=["resources"]
 )
 
+app.include_router(
+    repositories.router,
+    prefix=f"{settings.API_V1_PREFIX}/repositories",
+    tags=["repositories"]
+)
+
+app.include_router(
+    cicd.router,
+    prefix=f"{settings.API_V1_PREFIX}/cicd",
+    tags=["cicd"]
+)
+
+app.include_router(api_settings.router, prefix=f"{settings.API_V1_PREFIX}/settings", tags=["settings"])
+
+app.include_router(
+    dashboard.router,
+    prefix=f"{settings.API_V1_PREFIX}/dashboard",
+    tags=["dashboard"]
+)
+
+app.include_router(
+    monitoring.router,
+    prefix=f"{settings.API_V1_PREFIX}/monitoring",
+    tags=["monitoring"]
+)
+
 
 @app.on_event("startup")
 async def startup_event():
     """Evento de inicio de la aplicación"""
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+    
+    # Inicializar tablas de base de datos
+    try:
+        from app.migrate_db import migrate
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        # Ejecutar migraciones manuales para columnas nuevas
+        await migrate()
+        
+        logger.info("Base de datos persistente inicializada y migrada correctamente")
+    except Exception as e:
+        logger.error(f"Error inicializando base de datos: {e}")
+
     logger.info(f"Debug mode: {settings.DEBUG}")
 
 

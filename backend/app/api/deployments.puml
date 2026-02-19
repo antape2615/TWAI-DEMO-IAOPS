@@ -1,0 +1,22 @@
+@startuml
+class DeploymentRequest {
+  DeploymentRequest(BaseModel): class
+  CodeDeploymentRequest(BaseModel): class
+  deploy_infrastructure(DeploymentRequest, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrado"): raise
+  HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e): raise
+  deploy_code(CodeDeploymentRequest, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrado"): raise
+  HTTPException(status_code=status.HTTP_400_BAD_REQUEST, (standards): raise
+  HTTPException(status_code=status.HTTP_400_BAD_REQUEST, configurado"): raise
+  HTTPException(status_code=status.HTTP_400_BAD_REQUEST, ({cicd_type}): raise
+  HTTPException(status_code=500, detail=message): raise
+  HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e): raise
+  get_deployment_history(str, Depends(get_db): def
+  AppServiceRequest(BaseModel): class
+  create_app_service(AppServiceRequest, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e): raise
+  _extract_resource_name(str): def
+  _extract_resource_group(str): def
+}
+@enduml

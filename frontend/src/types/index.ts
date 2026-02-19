@@ -1,6 +1,6 @@
 export type CloudProvider = 'aws' | 'azure' | 'gcp';
 export type RepositoryProvider = 'github' | 'gitlab' | 'bitbucket';
-export type InfrastructureStandard = 'terraform' | 'cloudformation' | 'arm_templates' | 'pulumi';
+export type InfrastructureStandard = 'terraform' | 'cloudformation' | 'arm_templates' | 'bicep' | 'pulumi';
 export type CICDStandard = 'github-actions' | 'gitlab-ci' | 'azure-devops' | 'jenkins' | 'circleci';
 
 export interface TechStandards {
@@ -16,7 +16,7 @@ export interface TechProfile {
   repositories: RepositoryProvider[];
   standards: TechStandards;
   allowed_services?: Record<string, string[]>;
-  restrictions?: Record<string, any>;
+  restrictions?: Record<string, unknown>;
 }
 
 export interface Client {
@@ -38,12 +38,15 @@ export interface ClientCreate {
 export interface ArchitectureRequest {
   client_id: string;
   description: string;
-  requirements?: Record<string, any>;
+  requirements?: Record<string, unknown>;
   target_clouds?: CloudProvider[];
+  infrastructure_standard?: InfrastructureStandard;
 }
 
 export interface Architecture {
+  id?: string;
   client_id: string;
+  name?: string;
   architecture: {
     architecture_overview: string;
     components: Array<{
@@ -51,16 +54,18 @@ export interface Architecture {
       type: string;
       cloud_service: string;
       description: string;
-      configuration?: Record<string, any>;
+      configuration?: Record<string, unknown>;
     }>;
     data_flow?: string;
-    security?: Record<string, any>;
-    scalability?: Record<string, any>;
-    disaster_recovery?: Record<string, any>;
+    security?: Record<string, unknown>;
+    scalability?: Record<string, unknown>;
+    disaster_recovery?: Record<string, unknown>;
   };
   infrastructure_code?: string;
   diagram?: string;
   estimated_cost?: {
+    currency: string;
+    monthly_total?: string;
     monthly_estimate: {
       min: number;
       max: number;
@@ -69,6 +74,7 @@ export interface Architecture {
     breakdown?: Record<string, string>;
   };
   recommendations: string[];
+  created_at?: string;
 }
 
 export interface DeploymentTarget {
@@ -82,6 +88,7 @@ export interface DeploymentTarget {
 export interface DeploymentRequest {
   target: DeploymentTarget;
   infrastructure_code: string;
+  architecture_metadata?: Record<string, unknown>;
   repository_config?: {
     provider: RepositoryProvider;
     repository: string;
@@ -96,7 +103,7 @@ export interface Resource {
   name?: string;
   type: string;
   status?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ResourcesResponse {

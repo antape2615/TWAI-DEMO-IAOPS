@@ -72,3 +72,9 @@ yarn-error.log*
 # Build
 *.tar.gz
 *.zip
+
+# Ambientes y Secretos
+.env
+.env.*
+backend/.env.docker
+backend/.env.example

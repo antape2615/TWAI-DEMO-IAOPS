@@ -16,6 +16,9 @@ azure-identity==1.15.0  # Azure
 azure-mgmt-compute==30.5.0
 azure-mgmt-storage==21.1.0
 azure-mgmt-resource==23.0.1
+azure-mgmt-web==10.1.0
+azure-mgmt-containerinstance==10.1.0
+azure-mgmt-containerservice==31.0.0
 google-cloud-compute==1.15.0  # GCP
 google-cloud-storage==2.14.0
 google-cloud-resource-manager==1.12.0
@@ -34,6 +37,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 bcrypt==4.1.2
+cryptography==42.0.2
 
 # HTTP Client
 httpx==0.26.0
