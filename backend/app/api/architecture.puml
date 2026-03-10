@@ -1,0 +1,18 @@
+@startuml
+class ArchitectureUpdate {
+  ArchitectureUpdate(BaseModel): class
+  generate_architecture(ArchitectureRequest, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrado"): raise
+  HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e): raise
+  get_architecture_history(str, Depends(get_db): def
+  update_architecture(str, ArchitectureUpdate, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrada"): raise
+  ArchitectureResponse(id=arch.id, client_id=arch.client_id, name=arch.name, architecture=arch.architecture, infrastructure_code=arch.infrastructure_code, estimated_cost=arch.estimated_cost, recommendations=[], created_at=arch.created_at): return
+  delete_architecture(str, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrada"): raise
+  Response(status_code=status.HTTP_204_NO_CONTENT): return
+  estimate_cost(ArchitectureRequest, Depends(get_db): def
+  HTTPException(status_code=status.HTTP_404_NOT_FOUND, encontrado"): raise
+  HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e): raise
+}
+@enduml

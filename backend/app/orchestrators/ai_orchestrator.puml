@@ -1,0 +1,21 @@
+@startuml
+class AIOrchestrator {
+  __init__(self): def
+  _initialize_clients(self): def
+  generate_architecture(self, Client, ArchitectureRequest): def
+  ArchitectureResponse(client_id=client.id, architecture=architecture, infrastructure_code=infrastructure_code, estimated_cost=estimated_cost, recommendations=recommendations): return
+  _build_client_context(self, Client): def
+  _build_architecture_prompt(self, str, str, Dict[str, Any]): def
+  _call_ai(self, str): def
+  Exception(.env"): raise
+  _parse_architecture_response(self, str): def
+  _generate_infrastructure_code(self, Client, Dict[str, Any], None): def
+  _estimate_costs(self, Client, Dict[str, Any]): def
+  _generate_recommendations(self, Client, Dict[str, Any]): def
+  len(client.tech_profile.clouds): if
+  generate_cicd_pipeline(self, Client, str, str, str, str, "nodejs"): def
+  _build_cicd_prompt(self, str, str, str, str, str, str, str): def
+  _get_cicd_info(self, str): def
+  _parse_cicd_response(self, str, str): def
+}
+@enduml

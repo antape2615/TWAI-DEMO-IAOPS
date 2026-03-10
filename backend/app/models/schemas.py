@@ -23,6 +23,7 @@ class InfrastructureStandard(str, Enum):
     TERRAFORM = "terraform"
     CLOUDFORMATION = "cloudformation"
     ARM_TEMPLATES = "arm_templates"
+    BICEP = "bicep"
     PULUMI = "pulumi"
 
 
@@ -138,11 +139,14 @@ class ArchitectureRequest(BaseModel):
         description="Requerimientos específicos (escalabilidad, seguridad, etc.)"
     )
     target_clouds: Optional[List[CloudProvider]] = None
+    infrastructure_standard: Optional[InfrastructureStandard] = None
 
 
 class ArchitectureResponse(BaseModel):
     """Respuesta de generación de arquitectura"""
+    id: Optional[str] = None
     client_id: str
+    name: str = "Arquitectura 1"
     architecture: Dict[str, Any] = Field(
         ...,
         description="Arquitectura generada respetando el tech profile del cliente"
@@ -151,3 +155,26 @@ class ArchitectureResponse(BaseModel):
     diagram: Optional[str] = None
     estimated_cost: Optional[Dict[str, Any]] = None
     recommendations: List[str] = Field(default_factory=list)
+    created_at: Optional[datetime] = None
+
+
+class ConfigUpdate(BaseModel):
+    """Base para actualización de configuración"""
+    client_id: str
+    provider: str
+
+class CloudConfigUpdate(ConfigUpdate):
+    """Actualización de credenciales de nube"""
+    credentials: Dict[str, Any]
+    region: Optional[str] = None
+
+class RepoConfigUpdate(ConfigUpdate):
+    """Actualización de credenciales de repo"""
+    credentials: Dict[str, Any]
+    organization: Optional[str] = None
+
+class CICDConfigUpdate(ConfigUpdate):
+    """Actualización de credenciales de CI/CD"""
+    token: str
+    organization: Optional[str] = None
+    project: Optional[str] = None

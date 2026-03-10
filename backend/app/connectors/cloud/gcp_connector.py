@@ -106,11 +106,24 @@ class GCPConnector(BaseCloudConnector):
             )
             
             for instance in zone_instances:
+                status_map = {
+                    'RUNNING': 'running',
+                    'TERMINATED': 'stopped',
+                    'STAGING': 'pending',
+                    'PROVISIONING': 'pending',
+                    'STOPPING': 'stopped'
+                }
                 instances.append({
+                    'id': f"{zone.name}/{instance.name}",
                     'name': instance.name,
+                    'type': 'gce_instance',
                     'zone': zone.name,
                     'machine_type': instance.machine_type.split('/')[-1],
-                    'status': instance.status
+                    'status': status_map.get(instance.status, 'unknown'),
+                    'behavior': {
+                        'status': instance.status,
+                        'creation_timestamp': instance.creation_timestamp
+                    }
                 })
         
         return instances

@@ -1,0 +1,44 @@
+@startuml
+class CICDHandler {
+  CICDHandler(ABC): class
+  __init__(self, str, str, None, None): def
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  GitHubActionsHandler(CICDHandler): class
+  __init__(self, str, str, None, None, Optional[Dict[str, None, Optional[Dict[str, None): def
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  range(max_retries): in
+  _parse_repo(str): def
+  _get_repo_public_key(self, httpx.AsyncClient, str, str): def
+  _encrypt_secret(self, str, str): def
+  _create_github_secret(self, httpx.AsyncClient, str, str, str, str): def
+  _setup_azure_secrets(self, httpx.AsyncClient, str, str): def
+  all([secrets_to_create.get(k): if
+  _generate_pipeline_with_ai(self): def
+  _get_github_workflow_template(str, str): def
+  AzureDevOpsHandler(CICDHandler): class
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  _get_azdo_pipeline_template(str, str): def
+  GitLabCIHandler(CICDHandler): class
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  _get_gitlab_pipeline_template(str, str): def
+  JenkinsHandler(CICDHandler): class
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  _get_jenkinsfile_template(str, str): def
+  CircleCIHandler(CICDHandler): class
+  validate_credentials(self, httpx.AsyncClient): def
+  create_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  dispatch_pipeline(self, httpx.AsyncClient, str, str, str, str): def
+  _get_circleci_pipeline_template(str, str): def
+  dispatch(cls, str, str, str, str, str, str, None, None, Optional[Dict[str, None, Optional[Dict[str, None): def
+}
+@enduml

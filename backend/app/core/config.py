@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     # AWS Configuration
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_SESSION_TOKEN: Optional[str] = None  # Requerido para credenciales temporales (ASIA...)
     AWS_DEFAULT_REGION: str = "us-east-1"
     
     # Azure Configuration

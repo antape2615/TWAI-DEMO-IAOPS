@@ -1,35 +1,44 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { X, Plus, Trash2 } from 'lucide-react';
-import { ClientCreate, CloudProvider, RepositoryProvider } from '@/types';
+import { X } from 'lucide-react';
+import { ClientCreate, CloudProvider, RepositoryProvider, InfrastructureStandard, CICDStandard } from '@/types';
 import { clientService } from '@/services/clientService';
 import toast from 'react-hot-toast';
+
+interface CreateClientFormData {
+  name: string;
+  description?: string;
+  infrastructure: InfrastructureStandard;
+  cicd: CICDStandard;
+  container_orchestration?: string;
+  monitoring?: string;
+  logging?: string;
+}
 
 export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
   const [loading, setLoading] = useState(false);
   const [selectedClouds, setSelectedClouds] = useState<CloudProvider[]>([]);
   const [selectedRepos, setSelectedRepos] = useState<RepositoryProvider[]>([]);
-  
-  const { register, handleSubmit, formState: { errors } } = useForm<ClientCreate>();
+
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateClientFormData>();
 
   const toggleCloud = (cloud: CloudProvider) => {
-    setSelectedClouds(prev => 
-      prev.includes(cloud) 
+    setSelectedClouds(prev =>
+      prev.includes(cloud)
         ? prev.filter(c => c !== cloud)
         : [...prev, cloud]
     );
   };
 
   const toggleRepo = (repo: RepositoryProvider) => {
-    setSelectedRepos(prev => 
-      prev.includes(repo) 
+    setSelectedRepos(prev =>
+      prev.includes(repo)
         ? prev.filter(r => r !== repo)
         : [...prev, repo]
     );
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: CreateClientFormData) => {
     if (selectedClouds.length === 0) {
       toast.error('Debes seleccionar al menos un cloud provider');
       return;
@@ -62,8 +71,9 @@ export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void;
       toast.success('Cliente creado exitosamente');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Error al crear cliente');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al crear cliente';
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setLoading(false);
@@ -87,7 +97,7 @@ export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void;
           {/* Información Básica */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-900">Información Básica</h3>
-            
+
             <div>
               <label className="label">Nombre *</label>
               <input
@@ -121,11 +131,10 @@ export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void;
                   key={cloud}
                   type="button"
                   onClick={() => toggleCloud(cloud)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedClouds.includes(cloud)
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedClouds.includes(cloud)
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
                 >
                   {cloud.toUpperCase()}
                 </button>
@@ -142,11 +151,10 @@ export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void;
                   key={repo}
                   type="button"
                   onClick={() => toggleRepo(repo)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedRepos.includes(repo)
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedRepos.includes(repo)
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
                 >
                   {repo.charAt(0).toUpperCase() + repo.slice(1)}
                 </button>
@@ -157,7 +165,7 @@ export function CreateClientModal({ onClose, onSuccess }: { onClose: () => void;
           {/* Estándares */}
           <div className="space-y-4">
             <h3 className="font-semibold text-gray-900">Estándares Tecnológicos</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Infraestructura *</label>

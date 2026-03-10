@@ -1,0 +1,17 @@
+@startuml
+class AzureConnector {
+  __init__(self, str, None, None, None): def
+  connect(self): def
+  _get_resource_client(self): def
+  _get_compute_client(self): def
+  _get_storage_client(self): def
+  _get_web_client(self): def
+  Exception(package."): raise
+  create_app_service(self, str, str, None, "eastus", "PYTHON|3.11"): def
+  list_resources(self, None, None): def
+  delete_resource(self, str): def
+  get_resource_status(self, str, str): def
+  deploy_infrastructure(self, str, Optional[Dict[str, None): def
+  get_azure_connector(): def
+}
+@enduml
